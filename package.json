@@ -1,0 +1,18 @@
+{
+  "name": "aeedes-net-mqtt-broker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node -r esm ."
+  },
+  "keywords": [],
+  "author": "addempsea",
+  "description": "",
+  "dependencies": {
+    "aedes": "^0.46.3",
+    "esm": "^3.2.25",
+    "net": "^1.0.2"
+  }
+}
