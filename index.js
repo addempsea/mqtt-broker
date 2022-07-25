@@ -3,13 +3,22 @@ import { createServer } from "net";
 import pgPromise from "pg-promise";
 import promise from "bluebird";
 import dotenv from 'dotenv';
+import ws  from 'websocket-stream';
+import { createServer as httpServer } from 'http';
+const httpServer2 = httpServer()
 
 dotenv.config();
+const wsPort = 8883;
 const port = 1889;
 
 const aedesServer = aedes();
 createServer(aedesServer.handle).listen(port, () => {
   console.log(`MQTT Broker running on port: ${port}`);
+});
+ws.createServer({ server: httpServer2 }, aedesServer.handle)
+
+httpServer2.listen(wsPort, function () {
+  console.debug('Aedes MQTT-WS listening on port: ' + wsPort)
 });
 
 const pgp = pgPromise({ promiseLib: promise, noLocking: true });

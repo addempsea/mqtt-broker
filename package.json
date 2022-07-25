@@ -16,6 +16,7 @@
     "dotenv": "^16.0.1",
     "esm": "^3.2.25",
     "net": "^1.0.2",
-    "pg-promise": "^10.11.1"
+    "pg-promise": "^10.11.1",
+    "websocket-stream": "^5.5.2"
   }
 }
