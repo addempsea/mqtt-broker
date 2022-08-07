@@ -10,15 +10,16 @@ const httpServer2 = httpServer()
 dotenv.config();
 const wsPort = 8883;
 const port = 1889;
+const currentDateTime = new Date();
 
 const aedesServer = aedes();
 createServer(aedesServer.handle).listen(port, () => {
-  console.log(`MQTT Broker running on port: ${port}`);
+  console.log(`[${currentDateTime}] MQTT Broker running on port: ${port}`);
 });
 ws.createServer({ server: httpServer2 }, aedesServer.handle)
 
 httpServer2.listen(wsPort, function () {
-  console.debug('Aedes MQTT-WS listening on port: ' + wsPort)
+  console.debug(`[${currentDateTime}] Aedes MQTT-WS listening on port: ` + wsPort)
 });
 
 const pgp = pgPromise({ promiseLib: promise, noLocking: true });
@@ -36,17 +37,17 @@ const db = pgp(envs.dbUrl);
  */
  const findById = async (id) =>  db.oneOrNone(`SELECT * FROM mqtt_user_info WHERE id = $1`, [id]);
 
+const saveLog = async (openedBy, subscriberId) => db.none(`INSERT INTO door_log (opened_by, subscriber_id) VALUES ($1, $2)`, [openedBy, subscriberId]);
+
 /* A callback function that is called when a client tries to connect to the broker. */
 aedesServer.authenticate = (client, username, password, callback) => {
-  console.log({ client, id: client.id, username, password });
   const decryptedPassword = Buffer.from(password, "base64").toString();
   findById(client.id).then((user) => {
-    console.log({ user });
     if (user.username === username && user.password === decryptedPassword) {
       return callback(null, true);
     }
     const error = new Error("Authentication Failed!! Invalid user credentials.");
-    console.log("Error ! Authentication failed.");
+    console.log(`[${currentDateTime}] Error ! Authentication failed.`);
     return callback(error, false);
   });
   
@@ -58,9 +59,12 @@ aedesServer.authorizePublish = (client, packet, callback) => {
     if (user.topics) {
       const parsedTopics = user.topics.split(",");
       if (parsedTopics.includes(packet.topic)) {
+        if(packet.topic === 'door/log') {
+          saveLog(+packet.payload.toString(), user.subscriber_id);
+        }
         return callback(null, packet);
       }
-      console.log("Error ! Unauthorized publish to a topic.");
+      console.log(`[${currentDateTime}] Error ! Unauthorized publish to a topic.`);
       return callback(
         new Error("You are not authorized to publish to this message topic.")
       );
@@ -76,7 +80,7 @@ aedesServer.authorizeSubscribe = (client, sub, callback) => {
       if (parsedTopics.includes(sub.topic)) {
         return callback(null, sub);
       }
-      console.log("Error ! Unauthorized subscribe to a topic.");
+      console.log(`[${currentDateTime}] Error ! Unauthorized subscribe to a topic.`);
       return callback(
         new Error("You are not authorized to subscribe to this message topic.")
       );
@@ -87,7 +91,7 @@ aedesServer.authorizeSubscribe = (client, sub, callback) => {
 // emitted when a client connects to the broker
 aedesServer.on("client", function (client) {
   console.log(
-    `[CLIENT_CONNECTED] Client ${
+    `[${currentDateTime}] [CLIENT_CONNECTED] Client ${
       client ? client.id : client
     } connected to broker ${aedesServer.id}`
   );
@@ -96,7 +100,7 @@ aedesServer.on("client", function (client) {
 // emitted when a client disconnects from the broker
 aedesServer.on("clientDisconnect", function (client) {
   console.log(
-    `[CLIENT_DISCONNECTED] Client ${
+    `[${currentDateTime}] [CLIENT_DISCONNECTED] Client ${
       client ? client.id : client
     } disconnected from the broker ${aedesServer.id}`
   );
@@ -105,7 +109,7 @@ aedesServer.on("clientDisconnect", function (client) {
 // emitted when a client subscribes to a message topic
 aedesServer.on("subscribe", function (subscriptions, client) {
   console.log(
-    `[TOPIC_SUBSCRIBED] Client ${
+    `[${currentDateTime}] [TOPIC_SUBSCRIBED] Client ${
       client ? client.id : client
     } subscribed to topics: ${subscriptions
       .map((s) => s.topic)
@@ -116,7 +120,7 @@ aedesServer.on("subscribe", function (subscriptions, client) {
 // emitted when a client unsubscribes from a message topic
 aedesServer.on("unsubscribe", function (subscriptions, client) {
   console.log(
-    `[TOPIC_UNSUBSCRIBED] Client ${
+    `[${currentDateTime}] [TOPIC_UNSUBSCRIBED] Client ${
       client ? client.id : client
     } unsubscribed to topics: ${subscriptions.join(",")} from broker ${
       aedesServer.id
@@ -128,7 +132,7 @@ aedesServer.on("unsubscribe", function (subscriptions, client) {
 aedesServer.on("publish", async function (packet, client) {
   if (client) {
     console.log(
-      `[MESSAGE_PUBLISHED] Client ${
+      `[${currentDateTime}] [MESSAGE_PUBLISHED] Client ${
         client ? client.id : "BROKER_" + aedesServer.id
       } has published message on ${packet.topic} to broker ${aedesServer.id}`
     );
