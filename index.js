@@ -60,7 +60,7 @@ aedesServer.authorizePublish = (client, packet, callback) => {
       const parsedTopics = user.topics.split(",");
       if (parsedTopics.includes(packet.topic)) {
         if(packet.topic === 'door/log') {
-          saveLog(+packet.payload.toString(), user.subscriber_id);
+          saveLog(packet.payload.toString(), user.subscriber_id);
         }
         return callback(null, packet);
       }
