@@ -5,6 +5,7 @@ import promise from "bluebird";
 import dotenv from 'dotenv';
 import ws  from 'websocket-stream';
 import { createServer as httpServer } from 'https';
+import fs from 'fs';
 
 dotenv.config();
 const wsPort = 8883;
