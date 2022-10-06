@@ -4,18 +4,23 @@ import pgPromise from "pg-promise";
 import promise from "bluebird";
 import dotenv from 'dotenv';
 import ws  from 'websocket-stream';
-import { createServer as httpServer } from 'http';
-const httpServer2 = httpServer()
+import { createServer as httpServer } from 'https';
 
 dotenv.config();
 const wsPort = 8883;
 const port = 1889;
 const currentDateTime = () => new Date();
+const privateKey = fs.readFileSync('ssl-cert/privkey.pem', 'utf8');
+const certificate = fs.readFileSync('ssl-cert/fullchain.pem', 'utf8');
+
+const credentials = { key: privateKey, cert: certificate };
+const httpServer2 = httpServer(credentials)
 
 const aedesServer = aedes();
 createServer(aedesServer.handle).listen(port, () => {
   console.log(`[${currentDateTime()}] MQTT Broker running on port: ${port}`);
 });
+
 ws.createServer({ server: httpServer2 }, aedesServer.handle)
 
 httpServer2.listen(wsPort, function () {
