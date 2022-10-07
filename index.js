@@ -27,8 +27,8 @@ const wss = new WebSocketServer({ server: httpServer2 }, aedesServer.handle);
 
 wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(message) {
-      console.log('received: %s', message);
-      ws.send('reply from server : ' + message)
+      console.log('received: %s', message.toString());
+      ws.send('reply from server : ' + message.toString())
   });
 
   ws.send('something');
