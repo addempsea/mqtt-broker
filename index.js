@@ -3,7 +3,7 @@ import { createServer } from "net";
 import pgPromise from "pg-promise";
 import promise from "bluebird";
 import dotenv from 'dotenv';
-import { WebSocketServer }  from 'ws';
+import ws  from 'websocket-stream';
 import { createServer as httpServer } from 'https';
 import fs from 'fs';
 
@@ -22,17 +22,7 @@ createServer(aedesServer.handle).listen(port, () => {
   console.log(`[${currentDateTime()}] MQTT Broker running on port: ${port}`);
 });
 
-const wss = new WebSocketServer({ server: httpServer2 }, aedesServer.handle);
-
-
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-      console.log('received: %s', message.toString());
-      ws.send('reply from server : ' + message.toString())
-  });
-
-  ws.send('something');
-});
+ws.createServer({ server: httpServer2 }, aedesServer.handle);
 
 httpServer2.listen(wsPort, function () {
   console.debug(`[${currentDateTime()}] Aedes MQTT-WS listening on port: ` + wsPort)
