@@ -49,7 +49,7 @@ const saveLog = async (openedBy, subscriberId) => db.none(`INSERT INTO door_log 
 aedesServer.authenticate = (client, username, password, callback) => {
   const decryptedPassword = Buffer.from(password, "base64").toString();
   findById(client.id).then((user) => {
-    if (user.username === username && user.password === decryptedPassword) {
+    if (user && user.username === username && user.password === decryptedPassword) {
       return callback(null, true);
     }
     const error = new Error("Authentication Failed!! Invalid user credentials.");
