@@ -43,7 +43,21 @@ const db = pgp(envs.dbUrl);
  */
  const findById = async (id) =>  db.oneOrNone(`SELECT * FROM mqtt_user_info WHERE id = $1`, [id]);
 
+/**
+ * Save a log of who opened the door and who they let in.
+ * @param openedBy - The name of the person who opened the door.
+ * @param subscriberId - The ID of the subscriber who opened the door.
+ */
 const saveLog = async (openedBy, subscriberId) => db.none(`INSERT INTO door_log (opened_by, subscriber_id) VALUES ($1, $2)`, [openedBy, subscriberId]);
+
+/**
+ * Save data to the database.
+ * @param data - The data that you want to save.
+ * @param subscriberId - The id of the subscriber that sent the data
+ * @param topic - The topic you want to subscribe to.
+ */
+const saveData = async (data, subscriberId, topic) => db.none(`INSERT INTO data (data, subscriber_id, topic) VALUES ($1, $2, $3)`, [data, subscriberId, topic]);
+
 
 /* A callback function that is called when a client tries to connect to the broker. */
 aedesServer.authenticate = (client, username, password, callback) => {
@@ -79,6 +93,7 @@ aedesServer.authorizePublish = (client, packet, callback) => {
         if(packet.topic === 'door/log') {
           saveLog(packet.payload.toString(), user.subscriber_id);
         }
+        saveData(packet.payload.toString(), user.subscriber_id, packet.topic)
         return callback(null, packet);
       }
       console.log(`[${currentDateTime()}] Error ! Unauthorized publish to a topic.`);
