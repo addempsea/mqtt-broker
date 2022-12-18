@@ -67,6 +67,7 @@ aedesServer.authenticate = (client, username, password, callback) => {
 /* This is the function that is called when a client publishes a message packet on the topic. */
 aedesServer.authorizePublish = (client, packet, callback) => {
   if (!(client && client.id)) {
+    console.log(`Client: ${JSON.stringify(client, null, 2)}`);
     const error = new Error("Authentication Failed!! Invalid client credentials.");
     console.log(`[${currentDateTime()}] Error ! Authentication failed. No client provided`);
     return callback(error, false);
