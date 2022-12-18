@@ -49,7 +49,7 @@ const saveLog = async (openedBy, subscriberId) => db.none(`INSERT INTO door_log 
 aedesServer.authenticate = (client, username, password, callback) => {
   if (!(client && client.id) || !username || !password) {
     const error = new Error("Authentication Failed!! Invalid client credentials.");
-    console.log(`[${currentDateTime()}] Error ! Authentication failed.`);
+    console.log(`[${currentDateTime()}] Error ! Authentication failed. No client provided`);
     return callback(error, false);
   }
   const decryptedPassword = Buffer.from(password, "base64").toString();
@@ -66,9 +66,9 @@ aedesServer.authenticate = (client, username, password, callback) => {
 
 /* This is the function that is called when a client publishes a message packet on the topic. */
 aedesServer.authorizePublish = (client, packet, callback) => {
-  if (!(client && client.id) || !username || !password) {
+  if (!(client && client.id)) {
     const error = new Error("Authentication Failed!! Invalid client credentials.");
-    console.log(`[${currentDateTime()}] Error ! Authentication failed.`);
+    console.log(`[${currentDateTime()}] Error ! Authentication failed. No client provided`);
     return callback(error, false);
   }
   findById(client.id).then((user) => {
@@ -90,9 +90,9 @@ aedesServer.authorizePublish = (client, packet, callback) => {
 
 /* This is the function that is called when a client subscribes to a topic. */
 aedesServer.authorizeSubscribe = (client, sub, callback) => {
-  if (!(client && client.id) || !username || !password) {
+  if (!(client && client.id)) {
     const error = new Error("Authentication Failed!! Invalid client credentials.");
-    console.log(`[${currentDateTime()}] Error ! Authentication failed.`);
+    console.log(`[${currentDateTime()}] Error ! Authentication failed. No client provided`);
     return callback(error, false);
   }
   findById(client.id).then((user) => {
