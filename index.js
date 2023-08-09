@@ -15,7 +15,7 @@ const privateKey = fs.readFileSync('ssl-cert/privkey.pem', 'utf8');
 const certificate = fs.readFileSync('ssl-cert/fullchain.pem', 'utf8');
 
 const credentials = { key: privateKey, cert: certificate };
-const httpServer2 = httpServer({})
+const httpServer2 = httpServer(credentials)
 
 const aedesServer = aedes();
 createServer(aedesServer.handle).listen(port, () => {
