@@ -172,6 +172,9 @@ aedesServer.on("unsubscribe", function (subscriptions, client) {
 
 // emitted when a client publishes a message packet on the topic
 aedesServer.on("publish", async function (packet, client) {
+  console.log('====================================');
+  console.log(client);
+  console.log('====================================');
   if (client) {
     console.log(
       `[${currentDateTime()}] [MESSAGE_PUBLISHED] Client ${
@@ -179,7 +182,7 @@ aedesServer.on("publish", async function (packet, client) {
       } has published message on ${packet.topic} to broker ${aedesServer.id}`
     );
   }
-  findById(client.id).then((user) => {
+  findById(client && client.id).then((user) => {
     if ([6].includes(user.subscriber_id)) {
       const dto = {
         location: packet.payload.toString(),
