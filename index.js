@@ -15,7 +15,7 @@ const privateKey = fs.readFileSync('ssl-cert/privkey.pem', 'utf8');
 const certificate = fs.readFileSync('ssl-cert/fullchain.pem', 'utf8');
 
 const credentials = { key: privateKey, cert: certificate };
-const httpServer2 = httpServer(credentials)
+const httpServer2 = httpServer({})
 
 const aedesServer = aedes();
 createServer(aedesServer.handle).listen(port, () => {
@@ -35,6 +35,11 @@ const envs = {
 }
 
 const db = pgp(envs.dbUrl);
+db.connect().then(() => {
+  console.log('====================================');
+  console.log('DB connected successfully');
+  console.log('====================================');
+});
 
 /**
  * FindClientById is a function that takes a client object as an argument and returns the user object
@@ -86,14 +91,14 @@ aedesServer.authorizePublish = (client, packet, callback) => {
     console.log(`[${currentDateTime()}] Error ! Authentication failed. No client provided`);
     return callback(error, false);
   }
-  findById(client.id).then((user) => {
+  findById(client.id).then(async (user) => {
     if (user.topics) {
       const parsedTopics = user.topics.split(",");
       if (parsedTopics.includes(packet.topic)) {
         if(packet.topic === 'door/log') {
-          saveLog(packet.payload.toString(), user.subscriber_id);
+          await saveLog(packet.payload.toString(), user.subscriber_id);
         }
-        saveData(packet.payload.toString(), user.subscriber_id, packet.topic)
+        await saveData(packet.payload.toString(), user.subscriber_id, packet.topic)
         return callback(null, packet);
       }
       console.log(`[${currentDateTime()}] Error ! Unauthorized publish to a topic.`);
@@ -174,4 +179,11 @@ aedesServer.on("publish", async function (packet, client) {
       } has published message on ${packet.topic} to broker ${aedesServer.id}`
     );
   }
+  findById(client.id).then((user) => {
+    if ([6].includes(user.subscriber_id)) {
+      const dto = {
+        location: packet.payload.toString(),
+      }
+    }
+  })
 });
